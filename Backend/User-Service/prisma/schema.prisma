@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  name         String
+  password     String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  shortBio     String?
+  profilePhoto String?
+  isDeleted    Boolean     @default(false)
+  stories      Stories[]
+  bookmarks    Bookmarks[]
+}
+
+model Stories {
+  id           String      @id @default(cuid())
+  isMemberOnly Boolean     @default(false)
+  userID       String
+  thumbnail    String?
+  title        String
+  textContent  Content?
+  topics       Topics[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  isDeleted    Boolean     @default(false)
+  user         User        @relation(fields: [userID], references: [id])
+  isPublish    Boolean     @default(false)
+  bookmarks    Bookmarks[]
+}
+
+model Topics {
+  id      String  @id @default(cuid())
+  topic   String
+  storyID String
+  story   Stories @relation(fields: [storyID], references: [id])
+}
+
+model Bookmarks {
+  id      String  @id @default(cuid())
+  userID  String
+  storyID String
+  user    User    @relation(fields: [userID], references: [id])
+  story   Stories @relation(fields: [storyID], references: [id])
+}
+
+model Content {
+  id           String  @id @default(cuid())
+  content      String
+  title        String
+  subtitle     String
+  titleText    String?
+  subtitleText String?
+  storiesID    String  @unique
+  story        Stories @relation(fields: [storiesID], references: [id])
+}
